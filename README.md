@@ -75,6 +75,23 @@ Since this machine becomes the source of truth, back the repo root up somewhere 
 rsync -a /srv/frieren/repos/ backup-host:frieren-repos/
 ```
 
+## JSON API
+
+Everything the web UI shows is also served as JSON under `/api`, so external frontends can build their own experience on top. Same access model: world-readable, nothing writes. Refs and paths travel as query parameters, so branch names with slashes just work.
+
+```
+GET /api/repos                          all repositories
+GET /api/repos/{name}                   one repository's info
+GET /api/repos/{name}/tree?ref=&path=   directory listing
+GET /api/repos/{name}/blob?ref=&path=   file content (text inline, binary flagged)
+GET /api/repos/{name}/readme?ref=       root README, if any
+GET /api/repos/{name}/commits?ref=&n=   commit log
+GET /api/repos/{name}/commit/{hash}     one commit with its patch
+GET /api/repos/{name}/refs              branches and tags
+```
+
+Omitting `ref` uses the repository's default branch.
+
 ## What it deliberately isn't
 
 No issues, no pull requests, no user accounts, no markdown rendering yet — it hosts and shows git repositories, and stops there. The single-writer model is the point: if you need collaborators with write access, you want a full forge like Forgejo.

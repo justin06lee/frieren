@@ -19,8 +19,8 @@ import (
 
 var repoNameRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]*$`)
 
-// reservedNames are path roots the web UI claims for itself.
-var reservedNames = map[string]bool{"static": true}
+// reservedNames are path roots the web UI and JSON API claim for themselves.
+var reservedNames = map[string]bool{"static": true, "api": true}
 
 func validRepoName(name string) bool {
 	return repoNameRe.MatchString(name) && !reservedNames[name] && len(name) <= 100
@@ -103,11 +103,11 @@ func runGit(ctx context.Context, dir string, stdin []byte, args ...string) ([]by
 }
 
 type RepoInfo struct {
-	Name        string
-	Description string
-	Default     string
-	LastCommit  time.Time
-	Empty       bool
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Default     string    `json:"default"`
+	LastCommit  time.Time `json:"lastCommit"`
+	Empty       bool      `json:"empty"`
 }
 
 func (s *Store) open(name string) (*RepoInfo, error) {
@@ -157,11 +157,11 @@ func (s *Store) list() []*RepoInfo {
 }
 
 type TreeEntry struct {
-	Mode string
-	Type string // blob, tree, commit (submodule)
-	Hash string
-	Size int64 // -1 for trees
-	Name string
+	Mode string `json:"mode"`
+	Type string `json:"type"` // blob, tree, commit (submodule)
+	Hash string `json:"hash"`
+	Size int64  `json:"size"` // -1 for trees
+	Name string `json:"name"`
 }
 
 func (s *Store) lsTree(ctx context.Context, repo, ref, path string) ([]TreeEntry, error) {
@@ -208,11 +208,11 @@ func (s *Store) catBlob(ctx context.Context, repo, ref, path string) ([]byte, er
 }
 
 type Commit struct {
-	Hash    string
-	Short   string
-	Author  string
-	When    time.Time
-	Subject string
+	Hash    string    `json:"hash"`
+	Short   string    `json:"short"`
+	Author  string    `json:"author"`
+	When    time.Time `json:"when"`
+	Subject string    `json:"subject"`
 }
 
 const logFormat = "%H%x1f%h%x1f%an%x1f%at%x1f%s%x1e"
@@ -270,10 +270,10 @@ func (s *Store) patch(ctx context.Context, repo, hash string) (string, bool, err
 }
 
 type Ref struct {
-	Name    string
-	Short   string
-	When    time.Time
-	Subject string
+	Name    string    `json:"name"`
+	Short   string    `json:"short"`
+	When    time.Time `json:"when"`
+	Subject string    `json:"subject"`
 }
 
 func (s *Store) refs(ctx context.Context, repo, kind string) ([]Ref, error) {
