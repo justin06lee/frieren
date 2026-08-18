@@ -1,0 +1,18 @@
+{{define "commits"}}{{template "pagehead" .}}
+{{template "repohead" .}}
+{{$p := .}}
+{{if .Commits}}
+<table class="commits">
+  {{range .Commits}}
+  <tr>
+    <td class="hash"><a href="/{{$p.Repo.Name}}/commit/{{.Hash}}">{{.Short}}</a></td>
+    <td class="subject"><a href="/{{$p.Repo.Name}}/commit/{{.Hash}}">{{.Subject}}</a></td>
+    <td class="author">{{.Author}}</td>
+    <td class="when">{{ago .When}}</td>
+  </tr>
+  {{end}}
+</table>
+{{else}}
+<div class="empty"><p>No commits yet.</p></div>
+{{end}}
+{{template "pagefoot" .}}{{end}}

@@ -1,0 +1,32 @@
+{{define "repo"}}{{template "pagehead" .}}
+{{template "repohead" .}}
+{{if .Repo.Empty}}
+<div class="empty">
+  <p>This repository is empty. The owner fills it with:</p>
+  <pre>git remote add frieren {{.CloneURL}}
+git push frieren master</pre>
+</div>
+{{else}}
+<table class="tree">
+  {{$p := .}}
+  {{range .Entries}}
+  <tr>
+    <td class="mode">{{.Mode}}</td>
+    {{if eq .Type "tree"}}
+    <td class="name dir"><a href="/{{$p.Repo.Name}}/tree/{{pesc $p.Ref}}/{{.Name}}">{{.Name}}/</a></td>
+    <td class="size"></td>
+    {{else}}
+    <td class="name"><a href="/{{$p.Repo.Name}}/blob/{{pesc $p.Ref}}/{{.Name}}">{{.Name}}</a></td>
+    <td class="size">{{size .Size}}</td>
+    {{end}}
+  </tr>
+  {{end}}
+</table>
+{{if .ReadmeName}}
+<section class="readme">
+  <h2>{{.ReadmeName}}</h2>
+  <pre>{{.Readme}}</pre>
+</section>
+{{end}}
+{{end}}
+{{template "pagefoot" .}}{{end}}
