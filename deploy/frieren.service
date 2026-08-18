@@ -1,0 +1,30 @@
+# systemd unit for the machine that hosts frieren.
+#
+#   sudo useradd --system --create-home --home-dir /srv/frieren frieren
+#   sudo install frieren /usr/local/bin/frieren
+#   sudo install -m 600 -o frieren /dev/null /srv/frieren/env
+#   echo "FRIEREN_TOKEN=$(frieren token)" | sudo tee /srv/frieren/env
+#   sudo cp deploy/frieren.service /etc/systemd/system/
+#   sudo systemctl enable --now frieren
+
+[Unit]
+Description=frieren self-hosted git server
+After=network.target
+
+[Service]
+User=frieren
+Group=frieren
+EnvironmentFile=/srv/frieren/env
+ExecStart=/usr/local/bin/frieren serve -addr 127.0.0.1:7420 -root /srv/frieren/repos
+Restart=always
+RestartSec=2
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/frieren/repos
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

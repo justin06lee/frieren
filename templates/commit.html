@@ -1,0 +1,11 @@
+{{define "commit"}}{{template "pagehead" .}}
+{{template "repohead" .}}
+<div class="commitmeta">
+  <h2>{{.Commit.Subject}}</h2>
+  <p><code>{{.Commit.Hash}}</code></p>
+  <p>{{.Commit.Author}} · {{.Commit.When.Format "Jan 2, 2006 15:04"}} ({{ago .Commit.When}})</p>
+</div>
+<pre class="diff"><code>{{range .Diff}}<span class="d-{{.Class}}">{{.Text}}
+</span>{{end}}</code></pre>
+{{if .Truncated}}<p class="empty">Diff truncated — view the full change locally with <code>git show {{.Commit.Short}}</code>.</p>{{end}}
+{{template "pagefoot" .}}{{end}}

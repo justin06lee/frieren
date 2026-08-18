@@ -1,0 +1,35 @@
+{{define "pagehead"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}}</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄</text></svg>">
+</head>
+<body>
+<header class="site">
+  <a class="wordmark" href="/">frieren</a>
+</header>
+<main>
+{{end}}
+
+{{define "pagefoot"}}
+</main>
+<footer class="site">served by <a href="https://github.com/justin06lee/frieren">frieren</a> — clone freely; only the owner writes.</footer>
+</body>
+</html>{{end}}
+
+{{define "repohead"}}
+<div class="repohead">
+  <h1><a href="/">~</a> / <a href="/{{.Repo.Name}}">{{.Repo.Name}}</a></h1>
+  {{if .Repo.Description}}<p class="desc">{{.Repo.Description}}</p>{{end}}
+  <nav class="tabs">
+    <a {{if eq .Tab "files"}}class="on"{{end}} href="/{{.Repo.Name}}">files</a>
+    <a {{if eq .Tab "commits"}}class="on"{{end}} href="/{{.Repo.Name}}/commits">commits</a>
+    <a {{if eq .Tab "refs"}}class="on"{{end}} href="/{{.Repo.Name}}/refs">refs</a>
+    {{if .Ref}}<span class="ref" title="ref">{{.Ref}}</span>{{end}}
+    <code class="clone">git clone {{.CloneURL}}</code>
+  </nav>
+</div>
+{{end}}

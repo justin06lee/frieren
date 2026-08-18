@@ -1,0 +1,30 @@
+{{define "refs"}}{{template "pagehead" .}}
+{{template "repohead" .}}
+{{$p := .}}
+<h2>branches</h2>
+{{if .Branches}}
+<table class="commits">
+  {{range .Branches}}
+  <tr>
+    <td class="name"><a href="/{{$p.Repo.Name}}/tree/{{pesc .Name}}">{{.Name}}</a></td>
+    <td class="hash"><a href="/{{$p.Repo.Name}}/commits/{{pesc .Name}}">{{.Short}}</a></td>
+    <td class="subject">{{.Subject}}</td>
+    <td class="when">{{ago .When}}</td>
+  </tr>
+  {{end}}
+</table>
+{{else}}<p class="empty">none</p>{{end}}
+<h2>tags</h2>
+{{if .Tags}}
+<table class="commits">
+  {{range .Tags}}
+  <tr>
+    <td class="name">{{.Name}}</td>
+    <td class="hash">{{.Short}}</td>
+    <td class="subject">{{.Subject}}</td>
+    <td class="when">{{ago .When}}</td>
+  </tr>
+  {{end}}
+</table>
+{{else}}<p class="empty">none</p>{{end}}
+{{template "pagefoot" .}}{{end}}

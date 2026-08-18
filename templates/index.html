@@ -1,0 +1,21 @@
+{{define "index"}}{{template "pagehead" .}}
+<h1 class="home">repositories</h1>
+{{if .Repos}}
+<table class="repos">
+  {{range .Repos}}
+  <tr>
+    <td class="name"><a href="/{{.Name}}">{{.Name}}</a></td>
+    <td class="desc">{{.Description}}</td>
+    <td class="when">{{if .Empty}}empty{{else}}{{ago .LastCommit}}{{end}}</td>
+  </tr>
+  {{end}}
+</table>
+{{else}}
+<div class="empty">
+  <p>No repositories yet. The owner creates one by pushing to it:</p>
+  <pre>git remote add frieren {{.Base}}/myrepo.git
+git push frieren master</pre>
+  <p>git will ask for credentials — any username, the owner token as the password.</p>
+</div>
+{{end}}
+{{template "pagefoot" .}}{{end}}

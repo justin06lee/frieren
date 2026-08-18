@@ -1,0 +1,20 @@
+{{define "tree"}}{{template "pagehead" .}}
+{{template "repohead" .}}
+{{$p := .}}
+<p class="crumbs"><a href="/{{.Repo.Name}}">{{.Repo.Name}}</a>{{range .Crumbs}} / <a href="/{{$p.Repo.Name}}/tree/{{pesc $p.Ref}}/{{.Path}}">{{.Name}}</a>{{end}}</p>
+<table class="tree">
+  {{$base := ""}}{{if .Dir}}{{$base = printf "%s/" .Dir}}{{end}}
+  {{range .Entries}}
+  <tr>
+    <td class="mode">{{.Mode}}</td>
+    {{if eq .Type "tree"}}
+    <td class="name dir"><a href="/{{$p.Repo.Name}}/tree/{{pesc $p.Ref}}/{{$base}}{{.Name}}">{{.Name}}/</a></td>
+    <td class="size"></td>
+    {{else}}
+    <td class="name"><a href="/{{$p.Repo.Name}}/blob/{{pesc $p.Ref}}/{{$base}}{{.Name}}">{{.Name}}</a></td>
+    <td class="size">{{size .Size}}</td>
+    {{end}}
+  </tr>
+  {{end}}
+</table>
+{{template "pagefoot" .}}{{end}}

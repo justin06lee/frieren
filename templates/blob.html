@@ -1,0 +1,14 @@
+{{define "blob"}}{{template "pagehead" .}}
+{{template "repohead" .}}
+{{$p := .}}
+<p class="crumbs"><a href="/{{.Repo.Name}}">{{.Repo.Name}}</a>{{range .Parents}} / <a href="/{{$p.Repo.Name}}/tree/{{pesc $p.Ref}}/{{.Path}}">{{.Name}}</a>{{end}} / <strong>{{.FileName}}</strong>
+  <span class="filemeta">{{size .Bytes}} · <a href="/{{.Repo.Name}}/raw/{{pesc .Ref}}/{{.RawPath}}">raw</a></span></p>
+{{if .Binary}}
+<div class="empty"><p>Binary file ({{size .Bytes}}). <a href="/{{.Repo.Name}}/raw/{{pesc .Ref}}/{{.RawPath}}">Download raw.</a></p></div>
+{{else if .Truncated}}
+<div class="empty"><p>File is too large to display ({{size .Bytes}}). <a href="/{{.Repo.Name}}/raw/{{pesc .Ref}}/{{.RawPath}}">View raw.</a></p></div>
+{{else}}
+<pre class="code"><code>{{range .Lines}}<span class="cl">{{.}}
+</span>{{end}}</code></pre>
+{{end}}
+{{template "pagefoot" .}}{{end}}
