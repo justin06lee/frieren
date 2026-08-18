@@ -24,6 +24,16 @@ func (srv *Server) handler() http.Handler {
 	mux.HandleFunc("POST /{repo}/git-upload-pack", srv.uploadPack)
 	mux.HandleFunc("POST /{repo}/git-receive-pack", srv.receivePack)
 
+	// JSON API (external frontends, read-only)
+	mux.HandleFunc("GET /api/repos", srv.apiRepos)
+	mux.HandleFunc("GET /api/repos/{repo}", srv.apiRepoInfo)
+	mux.HandleFunc("GET /api/repos/{repo}/tree", srv.apiTree)
+	mux.HandleFunc("GET /api/repos/{repo}/blob", srv.apiBlob)
+	mux.HandleFunc("GET /api/repos/{repo}/readme", srv.apiReadme)
+	mux.HandleFunc("GET /api/repos/{repo}/commits", srv.apiCommits)
+	mux.HandleFunc("GET /api/repos/{repo}/commit/{hash}", srv.apiCommit)
+	mux.HandleFunc("GET /api/repos/{repo}/refs", srv.apiRefs)
+
 	// Web UI (browsers, read-only)
 	mux.HandleFunc("GET /{$}", srv.indexPage)
 	mux.HandleFunc("GET /static/style.css", srv.styleCSS)
