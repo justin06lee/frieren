@@ -1,0 +1,6 @@
+# Caddy reverse proxy: automatic HTTPS in front of frieren.
+# Point your domain's DNS at this machine, then `caddy run`.
+
+git.example.com {
+	reverse_proxy 127.0.0.1:7420
+}
