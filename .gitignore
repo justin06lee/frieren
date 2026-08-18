@@ -1,0 +1,17 @@
+# build artifacts
+/dist/
+/frieren
+
+# local test repositories
+/repos/
+
+# OS junk
+.DS_Store
+
+# editor
+.idea/
+.vscode/
+
+# secrets
+.env
+*.token
