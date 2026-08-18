@@ -1,7 +1,7 @@
 VERSION     := $(shell git describe --tags --match 'v*' --always --dirty 2>/dev/null || echo dev)
 INSTALL_DIR := $(HOME)/.local/bin
 
-.PHONY: all build install update test clean
+.PHONY: all build install update test web clean
 
 all: build install
 
@@ -20,6 +20,9 @@ update: all
 
 test:
 	go test ./...
+
+web:
+	cd web && bun install && bun run build
 
 clean:
 	rm -rf dist
