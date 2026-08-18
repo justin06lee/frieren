@@ -149,6 +149,7 @@ func TestWebPages(t *testing.T) {
 	os.MkdirAll(filepath.Join(dir, "docs"), 0o755)
 	os.WriteFile(filepath.Join(dir, "README.md"), []byte("# site\nreadme body here\n"), 0o644)
 	os.WriteFile(filepath.Join(dir, "docs", "guide.txt"), []byte("guide line one\n"), 0o644)
+	os.WriteFile(filepath.Join(dir, "logo.svg"), []byte("<svg xmlns=\"http://www.w3.org/2000/svg\"/>\n"), 0o644)
 	mustGit(t, dir, "add", ".")
 	mustGit(t, dir, "commit", "-m", "add docs")
 	mustGit(t, dir, "push", withToken(t, ts.URL+"/site.git"), "master")
@@ -180,6 +181,16 @@ func TestWebPages(t *testing.T) {
 	code, body := get(t, ts.URL+"/site/commit/"+commits[0].Hash)
 	if code != http.StatusOK || !strings.Contains(body, "guide line one") {
 		t.Errorf("commit page: code %d, diff shown: %v", code, strings.Contains(body, "guide line one"))
+	}
+
+	// Media files get their real content type so README embeds render.
+	resp, err := http.Get(ts.URL + "/site/raw/master/logo.svg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if ct := resp.Header.Get("Content-Type"); ct != "image/svg+xml" {
+		t.Errorf("svg raw content-type = %q", ct)
 	}
 
 	// Traversal and junk stay 404.
