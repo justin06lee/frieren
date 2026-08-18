@@ -92,6 +92,23 @@ GET /api/repos/{name}/refs              branches and tags
 
 Omitting `ref` uses the repository's default branch.
 
+## The frontend (`web/`)
+
+`web/` is a Next.js app that reads that API and turns the archive into a designed reading experience — serif hero, syntax-highlighted files (shiki), rendered READMEs with working relative images, per-file diff views with dual line numbers. It fetches server-side, so the backend needs no CORS and its address stays out of the browser.
+
+```sh
+cd web
+bun install
+FRIEREN_API_URL=http://localhost:7420 bun dev
+```
+
+It deploys anywhere Next.js runs; on Vercel, set two things on the project:
+
+- `FRIEREN_API_URL` — the public URL of your frieren backend (e.g. `https://git.example.com`)
+- `FRIEREN_CLONE_URL` — optional; shown in clone commands when it differs from the API URL
+
+Until the backend is reachable, the site renders a graceful "archive unreachable" state with setup instructions, and recovers on its own once the server answers.
+
 ## What it deliberately isn't
 
 No issues, no pull requests, no user accounts, no markdown rendering yet — it hosts and shows git repositories, and stops there. The single-writer model is the point: if you need collaborators with write access, you want a full forge like Forgejo.

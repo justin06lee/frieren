@@ -244,6 +244,20 @@ func (srv *Server) blobPage(w http.ResponseWriter, r *http.Request) {
 	srv.render(w, "blob", data)
 }
 
+var rawTypes = map[string]string{
+	".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg",
+	".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp",
+	".ico": "image/x-icon", ".avif": "image/avif", ".pdf": "application/pdf",
+	".mp4": "video/mp4", ".webm": "video/webm", ".mp3": "audio/mpeg",
+}
+
+func extOf(path string) string {
+	if i := strings.LastIndexByte(path, '.'); i >= 0 && !strings.ContainsRune(path[i:], '/') {
+		return strings.ToLower(path[i:])
+	}
+	return ""
+}
+
 func (srv *Server) rawFile(w http.ResponseWriter, r *http.Request) {
 	repo := srv.openRepo(w, r)
 	if repo == nil {
@@ -259,11 +273,15 @@ func (srv *Server) rawFile(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	// Never let the browser interpret repository content as HTML.
+	// Never let the browser interpret repository content as HTML. Known
+	// media types get their real content type so <img>/<video> embeds work.
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	if isBinary(blob) {
+	switch {
+	case rawTypes[extOf(path)] != "":
+		w.Header().Set("Content-Type", rawTypes[extOf(path)])
+	case isBinary(blob):
 		w.Header().Set("Content-Type", "application/octet-stream")
-	} else {
+	default:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	}
 	w.Write(blob)
