@@ -107,7 +107,7 @@ It deploys anywhere Next.js runs; on Vercel, set two things on the project:
 - `FRIEREN_API_URL` — the public URL of your frieren backend (e.g. `https://git.example.com`)
 - `FRIEREN_CLONE_URL` — optional; shown in clone commands when it differs from the API URL
 
-Until the backend is reachable, the site renders a graceful "archive unreachable" state with setup instructions, and recovers on its own once the server answers.
+Until the backend is reachable, the site renders a graceful "archive unreachable" state with setup instructions, and recovers on its own once the server answers. `/api/health` on the deployed site reports whether it can reach the backend and how fast — the first place to look if the offline card ever shows.
 
 ## What it deliberately isn't
 
