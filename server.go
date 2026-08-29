@@ -6,8 +6,10 @@ import (
 )
 
 type Server struct {
-	Store *Store
-	Token string
+	Store    *Store
+	Users    *Users
+	Token    string
+	Throttle *throttle
 }
 
 // repoParam extracts the repository name from the route, accepting both
@@ -24,9 +26,20 @@ func (srv *Server) handler() http.Handler {
 	mux.HandleFunc("POST /{repo}/git-upload-pack", srv.uploadPack)
 	mux.HandleFunc("POST /{repo}/git-receive-pack", srv.receivePack)
 
-	// JSON API (external frontends, read-only)
+	// Accounts
+	mux.HandleFunc("GET /api/meta", srv.apiMeta)
+	mux.HandleFunc("POST /api/auth/login", srv.apiLogin)
+	mux.HandleFunc("GET /api/auth/session", srv.apiSession)
+	mux.HandleFunc("POST /api/auth/password", srv.apiPassword)
+	mux.HandleFunc("GET /api/auth/seats", srv.apiSeats)
+	mux.HandleFunc("POST /api/auth/seats/claim", srv.apiClaimSeat)
+	mux.HandleFunc("POST /api/auth/seats/release", srv.apiReleaseSeat)
+
+	// JSON API (external frontends). Reads honour repository visibility;
+	// the only write is the owner changing a repository's settings.
 	mux.HandleFunc("GET /api/repos", srv.apiRepos)
 	mux.HandleFunc("GET /api/repos/{repo}", srv.apiRepoInfo)
+	mux.HandleFunc("POST /api/repos/{repo}/settings", srv.apiRepoSettings)
 	mux.HandleFunc("GET /api/repos/{repo}/tree", srv.apiTree)
 	mux.HandleFunc("GET /api/repos/{repo}/blob", srv.apiBlob)
 	mux.HandleFunc("GET /api/repos/{repo}/readme", srv.apiReadme)
@@ -34,7 +47,8 @@ func (srv *Server) handler() http.Handler {
 	mux.HandleFunc("GET /api/repos/{repo}/commit/{hash}", srv.apiCommit)
 	mux.HandleFunc("GET /api/repos/{repo}/refs", srv.apiRefs)
 
-	// Web UI (browsers, read-only)
+	// Web UI (browsers). This surface has no sign-in, so it shows only
+	// public repositories — private work is visible on the frontend.
 	mux.HandleFunc("GET /{$}", srv.indexPage)
 	mux.HandleFunc("GET /static/style.css", srv.styleCSS)
 	mux.HandleFunc("GET /{repo}", srv.repoPage)

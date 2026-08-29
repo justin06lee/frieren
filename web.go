@@ -108,10 +108,12 @@ func (srv *Server) newPage(r *http.Request, repo *RepoInfo, ref, tab string) pag
 	return p
 }
 
-// openRepo loads the repo named in the route or writes a 404.
+// openRepo loads the repo named in the route or writes a 404. This surface
+// has no sign-in, so private repositories are invisible here — they live
+// behind the frontend, which does.
 func (srv *Server) openRepo(w http.ResponseWriter, r *http.Request) *RepoInfo {
 	info, err := srv.Store.open(repoParam(r))
-	if err != nil {
+	if err != nil || info.Private {
 		srv.notFound(w, r)
 		return nil
 	}
@@ -127,7 +129,7 @@ func (srv *Server) indexPage(w http.ResponseWriter, r *http.Request) {
 	srv.render(w, "index", struct {
 		page
 		Repos []*RepoInfo
-	}{srv.newPage(r, nil, "", ""), srv.Store.list()})
+	}{srv.newPage(r, nil, "", ""), srv.Store.list(nil)})
 }
 
 func (srv *Server) repoPage(w http.ResponseWriter, r *http.Request) {
