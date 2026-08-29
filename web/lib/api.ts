@@ -1,76 +1,36 @@
-// Server-side client for the frieren backend's read-only JSON API.
+import { apiBase, BackendOffline } from "./env";
+import { sessionToken } from "./session";
+import type {
+  Blob,
+  Commit,
+  CommitDetail,
+  Meta,
+  Viewer,
+  Readme,
+  Refs,
+  RepoInfo,
+  TreeEntry,
+} from "./types";
 
-export type RepoInfo = {
-  name: string;
-  description: string;
-  default: string;
-  lastCommit: string;
-  empty: boolean;
-};
+export { apiBase, cloneUrl, rawUrl, BackendOffline } from "./env";
+export type * from "./types";
 
-export type TreeEntry = {
-  mode: string;
-  type: "blob" | "tree" | "commit";
-  hash: string;
-  size: number;
-  name: string;
-};
-
-export type Blob = {
-  path: string;
-  size: number;
-  binary: boolean;
-  truncated: boolean;
-  content: string;
-};
-
-export type Readme = { name: string; content: string };
-
-export type Commit = {
-  hash: string;
-  short: string;
-  author: string;
-  when: string;
-  subject: string;
-};
-
-export type CommitDetail = Commit & { patch: string; truncated: boolean };
-
-export type Refs = {
-  branches: { name: string; short: string; when: string; subject: string }[];
-  tags: { name: string; short: string; when: string; subject: string }[];
-};
-
-export function apiBase(): string | null {
-  const base = process.env.FRIEREN_API_URL;
-  return base ? base.replace(/\/+$/, "") : null;
-}
-
-// Where git users point their clients — defaults to the API host.
-export function cloneUrl(repo: string): string {
-  const base = process.env.FRIEREN_CLONE_URL?.replace(/\/+$/, "") ?? apiBase();
-  return `${base ?? "https://your-frieren-server"}/${repo}.git`;
-}
-
-export function rawUrl(repo: string, ref: string, path: string): string {
-  const segs = path.split("/").map(encodeURIComponent).join("/");
-  return `${apiBase()}/${repo}/raw/${encodeURIComponent(ref)}/${segs}`;
-}
-
-export class BackendOffline extends Error {
-  constructor() {
-    super("frieren backend unreachable");
-  }
-}
-
-// api fetches a path, returning null on 404/400 and throwing BackendOffline
-// when the backend is missing or unreachable.
+// api fetches a path as the current viewer, returning null on 404/400 and
+// throwing BackendOffline when the backend is missing or unreachable.
+//
+// Signed-in responses are never cached: one visitor's private repositories
+// must not be served to the next.
 async function api<T>(path: string): Promise<T | null> {
   const base = apiBase();
   if (!base) throw new BackendOffline();
+  const token = await sessionToken();
+
   let res: Response;
   try {
-    res = await fetch(`${base}/api${path}`, { next: { revalidate: 30 } });
+    res = await fetch(`${base}/api${path}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      ...(token ? { cache: "no-store" as const } : { next: { revalidate: 30 } }),
+    });
   } catch {
     throw new BackendOffline();
   }
@@ -81,6 +41,8 @@ async function api<T>(path: string): Promise<T | null> {
 
 const q = encodeURIComponent;
 
+export const getMeta = () => api<Meta>("/meta");
+export const getSeats = () => api<Viewer[]>("/auth/seats");
 export const getRepos = () => api<RepoInfo[]>("/repos");
 export const getRepo = (repo: string) => api<RepoInfo>(`/repos/${q(repo)}`);
 export const getTree = (repo: string, ref: string, path: string) =>

@@ -1,41 +1,40 @@
 import Link from "next/link";
 
-// Breadcrumb path for tree/blob pages: repo / dir / dir / name
+// repo / dir / dir / file — every part a link except the one you're on.
 export default function Crumbs({
   repo,
   refName,
   path,
-  leafIsLink,
 }: {
   repo: string;
   refName: string;
   path: string;
-  leafIsLink: boolean;
 }) {
   const ref = encodeURIComponent(refName);
   const parts = path === "" ? [] : path.split("/");
+
   return (
-    <p className="font-mono text-sm text-fog">
-      <Link href={`/${repo}/tree/${ref}`} className="text-snow hover:text-frost">
+    <nav aria-label="Breadcrumb" className="min-w-0 font-mono text-base">
+      <Link href={`/${repo}/tree/${ref}`} className="font-semibold text-link hover:underline">
         {repo}
       </Link>
       {parts.map((part, i) => {
-        const sub = parts.slice(0, i + 1).join("/");
+        const sub = parts.slice(0, i + 1);
         const last = i === parts.length - 1;
+        const href = `/${repo}/tree/${ref}/${sub.map(encodeURIComponent).join("/")}`;
         return (
-          <span key={sub}>
+          <span key={href} className="text-mute">
             {" / "}
-            {last && !leafIsLink ? (
-              <span className="text-snow">{part}</span>
+            {last ? (
+              <span className="font-semibold text-ink">{part}</span>
             ) : (
-              <Link href={`/${repo}/tree/${ref}/${sub}`} className="hover:text-frost">
+              <Link href={href} className="text-link hover:underline">
                 {part}
               </Link>
             )}
           </span>
         );
       })}
-      <span className="ml-3 border border-line px-1.5 py-0.5 text-xs text-frost">{refName}</span>
-    </p>
+    </nav>
   );
 }

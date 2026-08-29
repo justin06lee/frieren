@@ -1,44 +1,50 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { Poppins, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
-import Starfield from "@/components/Starfield";
+import AppHeader from "@/components/AppHeader";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jbmono" });
-const serif = Instrument_Serif({
+const poppins = Poppins({
   subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-serif",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
 });
+
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono-code" });
 
 export const metadata: Metadata = {
   title: { default: "frieren", template: "%s · frieren" },
   description:
-    "A self-hosted archive of one person's code — browse and clone everything, write nothing.",
+    "A self-hosted git archive. Guests browse and clone the public repositories; the owner sees everything.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable} ${serif.variable}`}>
-      <body className="relative min-h-screen">
-        <Starfield />
-        <header className="mx-auto flex max-w-5xl items-baseline justify-between px-6 pb-4 pt-6">
-          <Link href="/" className="font-display text-2xl tracking-wide">
-            <span className="text-frost">❄</span> frieren
-          </Link>
-          <span className="font-mono text-xs text-dim">a personal git archive</span>
-        </header>
-        <main className="mx-auto max-w-5xl px-6 pb-24 pt-6">{children}</main>
-        <footer className="mx-auto max-w-5xl border-t border-line px-6 py-6 font-mono text-xs text-dim">
-          one writer · world readers — served from the owner&apos;s own machine by{" "}
-          <a
-            href="https://github.com/justin06lee/frieren"
-            className="text-fog hover:text-frost"
-          >
-            frieren
-          </a>
+    <html lang="en" className={`${poppins.variable} ${mono.variable}`}>
+      <body className="flex min-h-screen flex-col">
+        <AppHeader />
+        <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-6 md:px-6">{children}</main>
+        <footer className="mt-8 border-t border-hair">
+          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center gap-x-5 gap-y-2 px-4 py-6 text-xs text-mute md:px-6">
+            <span className="text-faint">© frieren</span>
+            <Link href="/" className="hover:text-link">
+              Repositories
+            </Link>
+            <Link href="/settings" className="hover:text-link">
+              Settings
+            </Link>
+            <a
+              href="https://github.com/justin06lee/frieren"
+              className="hover:text-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Source
+            </a>
+            <span className="ml-auto text-faint">
+              Self-hosted on the owner&apos;s own hardware
+            </span>
+          </div>
         </footer>
       </body>
     </html>

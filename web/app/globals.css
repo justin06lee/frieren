@@ -1,48 +1,70 @@
 @import "tailwindcss";
 
+/* Palette follows GitHub's dark theme closely enough to feel familiar, with
+   its own type. Names describe role, not colour, so a light theme later only
+   has to change values. */
+@theme {
+  --color-canvas: #0d1117;
+  --color-inset: #010409;
+  --color-panel: #151b23;
+  --color-raised: #212830;
+  --color-hover: #262c36;
+  --color-line: #3d444d;
+  --color-hair: #2a313c;
+
+  --color-ink: #f0f6fc;
+  --color-mute: #9198a1;
+  --color-faint: #656c76;
+
+  --color-link: #4493f8;
+  --color-brand: #238636;
+  --color-brand-hi: #29903b;
+  --color-green: #3fb950;
+  --color-amber: #d29922;
+  --color-red: #f85149;
+  --color-active: #fd8c73;
+
+  --color-add-bg: #12261e;
+  --color-add-gutter: #1b4721;
+  --color-del-bg: #25171c;
+  --color-del-gutter: #542426;
+}
+
 @theme inline {
-  --color-night: #0b0c10;
-  --color-abyss: #08090c;
-  --color-panel: #101218;
-  --color-raise: #161923;
-  --color-line: #1f232e;
-  --color-fog: #8a93a3;
-  --color-dim: #5c6472;
-  --color-snow: #dfe3ea;
-  --color-frost: #5eead4;
-  --color-gold: #e8c170;
-  --color-add: #86efac;
-  --color-add-bg: #0d2818;
-  --color-del: #fca5a5;
-  --color-del-bg: #2d1214;
-  --font-body: var(--font-inter), system-ui, sans-serif;
-  --font-mono: var(--font-jbmono), ui-monospace, monospace;
-  --font-display: var(--font-serif), Georgia, serif;
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-code), ui-monospace, SFMono-Regular, monospace;
 }
 
 html {
-  background: var(--color-night);
+  background: var(--color-canvas);
   color-scheme: dark;
 }
 
 body {
-  background: var(--color-night);
-  color: var(--color-snow);
-  font-family: var(--font-body);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-frost) 30%, transparent);
+  background: #1f6feb60;
 }
 
-/* ——— code blocks ——— */
+:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: -1px;
+  border-radius: 6px;
+}
+
+/* ——— code ——— */
 
 .shiki {
   background: transparent !important;
   counter-reset: ln;
-  font-size: 0.8125rem;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 20px;
 }
 
 .shiki code {
@@ -51,80 +73,118 @@ body {
   min-width: 100%;
 }
 
+.shiki .line {
+  display: block;
+  padding-right: 1rem;
+}
+
 .shiki .line::before {
   counter-increment: ln;
   content: counter(ln);
+  position: sticky;
+  left: 0;
   display: inline-block;
-  width: 3.5ch;
-  margin-right: 2ch;
+  width: 4ch;
+  padding-right: 1ch;
+  margin-right: 1.5ch;
   text-align: right;
-  color: var(--color-dim);
+  color: var(--color-faint);
+  background: var(--color-canvas);
   user-select: none;
+}
+
+.shiki .line:hover {
+  background: #ffffff08;
 }
 
 /* ——— rendered markdown ——— */
 
-.prose-frost {
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: var(--color-snow);
-}
-.prose-frost h1,
-.prose-frost h2,
-.prose-frost h3,
-.prose-frost h4 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  margin: 1.6em 0 0.5em;
-  color: var(--color-snow);
-}
-.prose-frost h1 { font-size: 1.75rem; margin-top: 0.4em; }
-.prose-frost h2 { font-size: 1.4rem; border-bottom: 1px solid var(--color-line); padding-bottom: 0.3em; }
-.prose-frost h3 { font-size: 1.15rem; }
-.prose-frost p { margin: 0.8em 0; }
-.prose-frost a { color: var(--color-frost); }
-.prose-frost a:hover { text-decoration: underline; }
-.prose-frost code {
-  font-family: var(--font-mono);
-  font-size: 0.85em;
-  background: var(--color-raise);
-  border: 1px solid var(--color-line);
-  padding: 0.1em 0.35em;
-}
-.prose-frost pre {
-  background: var(--color-abyss);
-  border: 1px solid var(--color-line);
-  padding: 0.9rem 1.1rem;
-  overflow-x: auto;
-  margin: 1em 0;
-  font-size: 0.8125rem;
+.markdown {
+  font-size: 15px;
   line-height: 1.6;
+  color: var(--color-ink);
+  overflow-wrap: break-word;
 }
-.prose-frost pre code { background: none; border: 0; padding: 0; font-size: inherit; }
-.prose-frost ul, .prose-frost ol { padding-left: 1.4em; margin: 0.8em 0; }
-.prose-frost ul { list-style: none; }
-.prose-frost ul > li::before {
-  content: "▪";
-  color: var(--color-frost);
-  display: inline-block;
-  width: 1.2em;
-  margin-left: -1.2em;
-  font-size: 0.7em;
-  vertical-align: 0.15em;
+.markdown > *:first-child { margin-top: 0 !important; }
+.markdown > *:last-child { margin-bottom: 0 !important; }
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin: 24px 0 16px;
+  font-weight: 600;
+  line-height: 1.25;
 }
-.prose-frost ol { list-style: decimal; }
-.prose-frost li { margin: 0.3em 0; }
-.prose-frost blockquote {
-  border-left: 2px solid var(--color-gold);
-  padding-left: 1em;
-  color: var(--color-fog);
-  margin: 1em 0;
+.markdown h1 { font-size: 2em; padding-bottom: 0.3em; border-bottom: 1px solid var(--color-hair); }
+.markdown h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid var(--color-hair); }
+.markdown h3 { font-size: 1.25em; }
+.markdown h4 { font-size: 1em; }
+.markdown h5 { font-size: 0.875em; }
+.markdown h6 { font-size: 0.85em; color: var(--color-mute); }
+
+.markdown p,
+.markdown blockquote,
+.markdown ul,
+.markdown ol,
+.markdown pre,
+.markdown table { margin: 0 0 16px; }
+
+.markdown a { color: var(--color-link); text-decoration: none; }
+.markdown a:hover { text-decoration: underline; }
+
+.markdown code {
+  font-family: var(--font-mono);
+  font-size: 85%;
+  padding: 0.2em 0.4em;
+  border-radius: 6px;
+  background: #656c7633;
 }
-.prose-frost table { border-collapse: collapse; margin: 1em 0; font-size: 0.875rem; }
-.prose-frost th, .prose-frost td { border: 1px solid var(--color-line); padding: 0.4em 0.8em; text-align: left; }
-.prose-frost th { background: var(--color-raise); font-weight: 600; }
-.prose-frost img { max-width: 100%; border: 1px solid var(--color-line); }
-.prose-frost hr { border: 0; border-top: 1px solid var(--color-line); margin: 1.6em 0; }
-.prose-frost [align="center"] { text-align: center; }
-.prose-frost [align="center"] img { display: inline-block; }
+.markdown pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  border-radius: 6px;
+  background: var(--color-inset);
+  border: 1px solid var(--color-hair);
+}
+.markdown pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 100%;
+  white-space: pre;
+}
+
+.markdown ul, .markdown ol { padding-left: 2em; }
+.markdown ul { list-style: disc; }
+.markdown ol { list-style: decimal; }
+.markdown li { margin: 0.25em 0; }
+.markdown li > ul, .markdown li > ol { margin: 0; }
+
+.markdown blockquote {
+  padding: 0 1em;
+  border-left: 0.25em solid var(--color-line);
+  color: var(--color-mute);
+}
+
+.markdown table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border-collapse: collapse;
+}
+.markdown th, .markdown td {
+  padding: 6px 13px;
+  border: 1px solid var(--color-line);
+}
+.markdown tr:nth-child(2n) { background: #151b2380; }
+.markdown th { font-weight: 600; }
+
+.markdown img { max-width: 100%; box-sizing: content-box; }
+.markdown hr { height: 1px; margin: 24px 0; border: 0; background: var(--color-line); }
+.markdown [align="center"] { text-align: center; }
+.markdown [align="center"] img { display: inline-block; }

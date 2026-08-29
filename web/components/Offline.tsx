@@ -1,31 +1,51 @@
-import { apiBase } from "@/lib/api";
+import { apiBase } from "@/lib/env";
+import { AlertIcon } from "./icons";
+import { panel } from "./ui";
 
-// Shown while the backend git server isn't reachable yet.
+// Shown when the backend git server isn't answering. The archive itself is
+// fine — this deployment just can't reach it — so the copy says so.
 export default function Offline() {
   const base = apiBase();
   return (
-    <div className="mx-auto max-w-xl border border-line bg-panel px-8 py-10">
-      <p className="font-mono text-sm text-gold">❄ the archive is unreachable</p>
-      <p className="mt-4 text-sm leading-relaxed text-fog">
+    <div className={`mx-auto max-w-2xl ${panel} overflow-hidden`}>
+      <div className="flex items-center gap-2 border-b border-hair bg-raised px-4 py-3">
+        <AlertIcon className="h-4 w-4 text-amber" />
+        <h2 className="text-sm font-semibold">The archive is unreachable</h2>
+      </div>
+      <div className="space-y-4 px-4 py-5 text-sm leading-relaxed text-mute">
         {base ? (
-          <>
-            This site is configured to read from <code className="text-snow">{base}</code>,
-            but that server didn&apos;t answer. If you run this frieren, check that the
-            backend is up and reachable from the internet.
-          </>
+          <p>
+            This site reads from{" "}
+            <code className="rounded bg-inset px-1.5 py-0.5 font-mono text-xs text-ink">
+              {base}
+            </code>
+            , which didn&apos;t answer. If this is your frieren, check that the server is
+            running and reachable from the internet.
+          </p>
         ) : (
-          <>
-            No backend is configured yet. Set the <code className="text-snow">FRIEREN_API_URL</code>{" "}
-            environment variable on this deployment to the public URL of your frieren git
-            server (for example <code className="text-snow">https://git.example.com</code>),
-            then redeploy.
-          </>
+          <p>
+            No backend is configured. Set{" "}
+            <code className="rounded bg-inset px-1.5 py-0.5 font-mono text-xs text-ink">
+              FRIEREN_API_URL
+            </code>{" "}
+            on this deployment to your git server&apos;s public URL — for example{" "}
+            <code className="rounded bg-inset px-1.5 py-0.5 font-mono text-xs text-ink">
+              https://git.example.com
+            </code>{" "}
+            — then redeploy.
+          </p>
         )}
-      </p>
-      <p className="mt-4 text-sm leading-relaxed text-fog">
-        Everything here is read-only — the repositories live on the owner&apos;s own
-        machine, and this page is just the window into them.
-      </p>
+        <p>
+          Nothing is lost: the repositories live on the owner&apos;s own machine, and this
+          site is only a window onto them.
+        </p>
+        <p className="text-xs text-faint">
+          <a href="/api/health" className="text-link hover:underline">
+            /api/health
+          </a>{" "}
+          reports what this deployment sees.
+        </p>
+      </div>
     </div>
   );
 }

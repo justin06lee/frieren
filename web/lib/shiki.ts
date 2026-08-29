@@ -21,7 +21,7 @@ const EXT_TO_LANG: Record<string, string> = {
 let highlighter: Promise<Highlighter> | null = null;
 
 function getHighlighter(): Promise<Highlighter> {
-  highlighter ??= createHighlighter({ themes: ["vitesse-dark"], langs: LANGS });
+  highlighter ??= createHighlighter({ themes: ["github-dark"], langs: LANGS });
   return highlighter;
 }
 
@@ -39,7 +39,7 @@ export async function highlight(code: string, lang: string | null): Promise<stri
   if (!lang) return null;
   try {
     const hl = await getHighlighter();
-    return hl.codeToHtml(code, { lang, theme: "vitesse-dark" });
+    return hl.codeToHtml(code, { lang, theme: "github-dark" });
   } catch {
     return null;
   }
