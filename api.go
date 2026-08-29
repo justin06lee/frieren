@@ -23,9 +23,12 @@ func apiError(w http.ResponseWriter, code int, msg string) {
 	json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }
 
+// apiRepo loads the repository named in the route, or writes a 404. A private
+// repository is a 404 rather than a 403 for guests, so its existence stays
+// secret too.
 func (srv *Server) apiRepo(w http.ResponseWriter, r *http.Request) *RepoInfo {
 	info, err := srv.Store.open(repoParam(r))
-	if err != nil {
+	if err != nil || !canSee(info, srv.viewer(r)) {
 		apiError(w, http.StatusNotFound, "no such repository")
 		return nil
 	}
@@ -47,7 +50,7 @@ func refParam(w http.ResponseWriter, r *http.Request, repo *RepoInfo) string {
 }
 
 func (srv *Server) apiRepos(w http.ResponseWriter, r *http.Request) {
-	repos := srv.Store.list()
+	repos := srv.Store.list(srv.viewer(r))
 	if repos == nil {
 		repos = []*RepoInfo{}
 	}

@@ -28,7 +28,13 @@ export function parsePatch(patch: string): ParsedPatch {
   let oldN = 0;
   let newN = 0;
 
-  for (const line of body.split("\n")) {
+  // The patch ends with a newline, so splitting leaves one empty element.
+  // Drop just that one: an empty *context* line is " ", not "", so anything
+  // else that is empty is still meaningful.
+  const lines = body.split("\n");
+  if (lines.at(-1) === "") lines.pop();
+
+  for (const line of lines) {
     if (line.startsWith("diff --git ")) {
       // `diff --git a/path b/path` — take the b/ side.
       const m = line.match(/ b\/(.*)$/);

@@ -15,12 +15,31 @@ import (
 const testToken = "e2e-test-token"
 
 func newTestServer(t *testing.T) (*httptest.Server, *Store) {
+	ts, store, _ := newTestServerWithUsers(t)
+	return ts, store
+}
+
+// newTestServerWithUsers builds a server with a freshly bootstrapped seat
+// file. Password derivation is turned down so the suite stays quick.
+func newTestServerWithUsers(t *testing.T) (*httptest.Server, *Store, *Users) {
 	t.Helper()
-	store := &Store{Root: t.TempDir()}
-	srv := &Server{Store: store, Token: testToken}
+	old := pbkdfIter
+	pbkdfIter = 1000
+	t.Cleanup(func() { pbkdfIter = old })
+	// Bootstrap must see the built-in defaults, not the developer's shell.
+	t.Setenv("FRIEREN_OWNER", "")
+	t.Setenv("FRIEREN_PASSWORD", "")
+
+	root := t.TempDir()
+	users, err := LoadUsers(filepath.Join(root, ".frieren", "users.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	store := &Store{Root: root}
+	srv := &Server{Store: store, Users: users, Token: testToken, Throttle: newThrottle()}
 	ts := httptest.NewServer(srv.handler())
 	t.Cleanup(ts.Close)
-	return ts, store
+	return ts, store, users
 }
 
 // gitCmd runs git isolated from the developer's global config and credentials.
@@ -51,11 +70,17 @@ func mustGit(t *testing.T, dir string, args ...string) string {
 // withToken embeds the owner token as basic-auth credentials in a clone URL.
 func withToken(t *testing.T, raw string) string {
 	t.Helper()
+	return withPassword(t, raw, "owner", testToken)
+}
+
+// withPassword embeds a seat's own credentials in a clone URL.
+func withPassword(t *testing.T, raw, user, pass string) string {
+	t.Helper()
 	u, err := url.Parse(raw)
 	if err != nil {
 		t.Fatal(err)
 	}
-	u.User = url.UserPassword("owner", testToken)
+	u.User = url.UserPassword(user, pass)
 	return u.String()
 }
 

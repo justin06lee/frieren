@@ -1,4 +1,4 @@
-import { apiBase } from "@/lib/api";
+import { apiBase } from "@/lib/env";
 
 // Reports whether this deployment can reach its backend — the first place to
 // look when the site shows the offline card.

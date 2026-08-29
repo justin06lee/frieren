@@ -2,8 +2,6 @@ package main
 
 import (
 	"compress/gzip"
-	"crypto/sha256"
-	"crypto/subtle"
 	"fmt"
 	"io"
 	"log"
@@ -26,20 +24,51 @@ func pktLine(s string) string {
 	return fmt.Sprintf("%04x%s", len(s)+4, s)
 }
 
-// authorized reports whether the request carries the owner token as the HTTP
-// Basic password. The username is ignored. With no token configured the
-// server is read-only for everyone, owner included.
+// authorized reports whether the request proves the caller holds a seat:
+// either the owner token as the HTTP Basic password (username ignored), or a
+// seat's own username and password. With neither a token nor any configured
+// seat, the server is read-only for everyone.
 func (srv *Server) authorized(r *http.Request) bool {
-	if srv.Token == "" {
-		return false
-	}
-	_, pass, ok := r.BasicAuth()
+	user, pass, ok := r.BasicAuth()
 	if !ok {
 		return false
 	}
-	want := sha256.Sum256([]byte(srv.Token))
-	got := sha256.Sum256([]byte(pass))
-	return subtle.ConstantTimeCompare(want[:], got[:]) == 1
+	if srv.tokenMatches(pass) {
+		return true
+	}
+	if srv.Users == nil {
+		return false
+	}
+	// Password attempts are throttled per address; the token path above is
+	// not, so ordinary tooling never trips over this.
+	key := clientIP(r)
+	if srv.Throttle.blocked(key) {
+		return false
+	}
+	if _, err := srv.Users.Authenticate(user, pass); err != nil {
+		srv.Throttle.record(key)
+		return false
+	}
+	srv.Throttle.clear(key)
+	return true
+}
+
+// readable reports whether the caller may fetch from this repository, and
+// whether a credential prompt would help. Private repositories answer 401 so
+// git knows to ask for credentials and retry.
+func (srv *Server) readable(w http.ResponseWriter, r *http.Request, name string) bool {
+	if !srv.Store.exists(name) {
+		http.NotFound(w, r)
+		return false
+	}
+	if !srv.Store.private(name) {
+		return true
+	}
+	if srv.viewer(r) != nil {
+		return true
+	}
+	requireAuth(w)
+	return false
 }
 
 func requireAuth(w http.ResponseWriter) {
@@ -70,8 +99,7 @@ func (srv *Server) infoRefs(w http.ResponseWriter, r *http.Request) {
 	service := r.URL.Query().Get("service")
 	switch service {
 	case "git-upload-pack":
-		if !srv.Store.exists(name) {
-			http.NotFound(w, r)
+		if !srv.readable(w, r, name) {
 			return
 		}
 	case "git-receive-pack":
@@ -105,8 +133,7 @@ func (srv *Server) infoRefs(w http.ResponseWriter, r *http.Request) {
 
 func (srv *Server) uploadPack(w http.ResponseWriter, r *http.Request) {
 	name := repoParam(r)
-	if !srv.Store.exists(name) {
-		http.NotFound(w, r)
+	if !srv.readable(w, r, name) {
 		return
 	}
 	srv.serviceRPC(w, r, name, "upload-pack")

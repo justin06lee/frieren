@@ -19,8 +19,13 @@ import (
 
 var repoNameRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]*$`)
 
-// reservedNames are path roots the web UI and JSON API claim for themselves.
-var reservedNames = map[string]bool{"static": true, "api": true}
+// reservedNames are path roots the web UI, the JSON API, and the Next.js
+// frontend claim for themselves — a repository may not shadow them.
+var reservedNames = map[string]bool{
+	"static": true, "api": true, "login": true, "logout": true,
+	"settings": true, "_next": true, "favicon.ico": true,
+	"robots.txt": true, "sitemap.xml": true,
+}
 
 func validRepoName(name string) bool {
 	return repoNameRe.MatchString(name) && !reservedNames[name] && len(name) <= 100
@@ -108,13 +113,33 @@ type RepoInfo struct {
 	Default     string    `json:"default"`
 	LastCommit  time.Time `json:"lastCommit"`
 	Empty       bool      `json:"empty"`
+	Private     bool      `json:"private"`
+}
+
+// Visibility lives in a plain `visibility` file inside the bare repository,
+// next to git's own `description` — readable and editable over SSH, and
+// absent means public, so every repository predating accounts stays public.
+func (s *Store) private(name string) bool {
+	b, err := os.ReadFile(filepath.Join(s.repoPath(name), "visibility"))
+	return err == nil && strings.TrimSpace(string(b)) == "private"
+}
+
+func (s *Store) setPrivate(name string, private bool) error {
+	if !s.exists(name) {
+		return fmt.Errorf("no such repository %q", name)
+	}
+	word := "public"
+	if private {
+		word = "private"
+	}
+	return os.WriteFile(filepath.Join(s.repoPath(name), "visibility"), []byte(word+"\n"), 0o644)
 }
 
 func (s *Store) open(name string) (*RepoInfo, error) {
 	if !s.exists(name) {
 		return nil, fmt.Errorf("no such repository %q", name)
 	}
-	info := &RepoInfo{Name: name, Default: "master"}
+	info := &RepoInfo{Name: name, Default: "master", Private: s.private(name)}
 	dir := s.repoPath(name)
 	if b, err := os.ReadFile(filepath.Join(dir, "description")); err == nil {
 		d := strings.TrimSpace(string(b))
@@ -137,7 +162,16 @@ func (s *Store) open(name string) (*RepoInfo, error) {
 	return info, nil
 }
 
-func (s *Store) list() []*RepoInfo {
+func (s *Store) setDescription(name, desc string) error {
+	if !s.exists(name) {
+		return fmt.Errorf("no such repository %q", name)
+	}
+	return os.WriteFile(filepath.Join(s.repoPath(name), "description"), []byte(strings.TrimSpace(desc)+"\n"), 0o644)
+}
+
+// list returns every repository the viewer is allowed to see. A nil viewer is
+// a guest, and guests see only public repositories.
+func (s *Store) list(viewer *User) []*RepoInfo {
 	entries, err := os.ReadDir(s.Root)
 	if err != nil {
 		return nil
@@ -148,9 +182,11 @@ func (s *Store) list() []*RepoInfo {
 			continue
 		}
 		name := strings.TrimSuffix(e.Name(), ".git")
-		if info, err := s.open(name); err == nil {
-			repos = append(repos, info)
+		info, err := s.open(name)
+		if err != nil || (info.Private && viewer == nil) {
+			continue
 		}
+		repos = append(repos, info)
 	}
 	sort.Slice(repos, func(i, j int) bool { return repos[i].LastCommit.After(repos[j].LastCommit) })
 	return repos
