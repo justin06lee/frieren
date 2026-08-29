@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.4.0 — 2026-08-28
+
+- Accounts. Two seats, no sign-up: an owner and one spare the owner can
+  configure. Guests read public repositories; seat holders read everything.
+  Passwords are PBKDF2-HMAC-SHA256 with 600k iterations; sessions are
+  stateless signed tokens that survive restarts and die when the password
+  they were issued under changes. Sign-in attempts are throttled per address.
+- Private repositories. Marked by a `visibility` file inside the bare repo.
+  Private work is absent from the repository list, answers `404` on the API
+  so its existence stays secret, is hidden from the built-in web UI, and
+  refuses anonymous `git clone`.
+- Pushing now accepts a seat's username and password as well as the owner
+  token.
+- New commands: `frieren users`, `frieren passwd <user>`, `frieren init
+  -private`. New endpoints: `/api/meta`, `/api/auth/*`, repository settings.
+- `web`: rebuilt front to back in GitHub's shape — profile page with the
+  repository list and visibility filters, repository header with
+  Code/Commits/Branches/Tags/Settings tabs, branch-and-tag switcher,
+  commits grouped by day, GitHub-style diffs, sign-in, account settings with
+  password change and seat management, per-repository settings. Poppins
+  replaces the serif display face. Tags are browsable at last.
+- HTTP server timeouts (`ReadHeaderTimeout`, `IdleTimeout`, `MaxHeaderBytes`).
+
 ## v0.3.0 — 2026-08-18
 
 - `web`: `/api/health` endpoint on the deployed site — reports whether the
