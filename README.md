@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/frieren.svg" alt="frieren" width="460" />
+<img src="assets/frieren.svg" alt="frieren" width="600" />
 
 # frieren
 
